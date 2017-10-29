@@ -1,2 +1,2 @@
 # Molecularize
-An assortment of chemistry-related tools
+A Java library for chemical calculations
