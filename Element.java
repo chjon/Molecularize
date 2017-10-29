@@ -175,8 +175,9 @@ public class Element {
 	}
 
 	//Deserialize element data
-	public static Element deserialize (String serializedData) {
+	public static Element deserialize (String serializedData) throws DataFormatException {
 		DataParser parser = new DataParser();
+
 		String[] dataArray = parser.parse(serializedData);
 
 		//Check for the expected data length
@@ -187,29 +188,25 @@ public class Element {
 		//Flag boolean to mark whether the deserialization was successful
 		boolean deserializationSuccessful = true;
 
-		try {
-			Element newElement = new Element();
+		Element newElement = new Element();
 
-			//Set element properties
-			deserializationSuccessful &=
-					newElement.setAtomicNumber  (Integer.parseInt(dataArray[0]));
-			deserializationSuccessful &=
-					newElement.setGroup         (Integer.parseInt(dataArray[1]));
-			deserializationSuccessful &=
-					newElement.setPeriod        (Integer.parseInt(dataArray[2]));
-			deserializationSuccessful &=
-					newElement.setMolarMass     (Double.parseDouble(dataArray[3]));
-			deserializationSuccessful &=
-					newElement.setName          (dataArray[4]);
-			deserializationSuccessful &=
-					newElement.setSymbol        (dataArray[5]);
+		//Set element properties
+		deserializationSuccessful &=
+				newElement.setAtomicNumber  (Integer.parseInt(dataArray[0]));
+		deserializationSuccessful &=
+				newElement.setGroup         (Integer.parseInt(dataArray[1]));
+		deserializationSuccessful &=
+				newElement.setPeriod        (Integer.parseInt(dataArray[2]));
+		deserializationSuccessful &=
+				newElement.setMolarMass     (Double.parseDouble(dataArray[3]));
+		deserializationSuccessful &=
+				newElement.setName          (dataArray[4]);
+		deserializationSuccessful &=
+				newElement.setSymbol        (dataArray[5]);
 
-			//Check whether the deserialization was successful
-			if (deserializationSuccessful) {
-				return newElement;
-			}
-		} catch (NumberFormatException e) {
-			System.err.println("NumberFormatException: " + e.getMessage());
+		//Check whether the deserialization was successful
+		if (deserializationSuccessful) {
+			return newElement;
 		}
 
 		return null;
