@@ -5,6 +5,7 @@ package Molecularize;
 \*------------------------------------------------------------------*/
 
 public class Element {
+
 	//------------------[Field declarations begin here]------------------//
 
 	private int    atomicNumber;        //The element's atomic number
@@ -20,7 +21,7 @@ public class Element {
 
 	//---------------------[Constructors begin here]---------------------//
 
-	public Element () {
+	private Element () {
 		//Initialize variables to invalid states
 		this.atomicNumber = -1;
 		this.group        = -1;
@@ -67,71 +68,101 @@ public class Element {
 	//----------------------[Mutators begin here]-----------------------//
 
 	//Set the element's atomic number
-	public boolean setAtomicNumber (int atomicNumber) {
+	public void setAtomicNumber (int atomicNumber) throws ElementDataException {
 		//Check for a valid atomic number
 		if (atomicNumber > 0) {
 			this.atomicNumber = atomicNumber;
-			return true;
 		} else {
-			return false;
+			throw ElementDataException.create(
+					"" + atomicNumber,
+					ElementDataException.ExceptionType.INVALID_ATOMIC_NUMBER
+			);
 		}
 	}
 
 	//Set the element's group
-	public boolean setGroup (int group) {
+	public void setGroup (int group) throws ElementDataException {
 		//Check for a valid group
 		if (group > 0) {
 			this.group = group;
-			return true;
 		} else {
-			return false;
+			throw ElementDataException.create(
+					"" + group,
+					ElementDataException.ExceptionType.INVALID_GROUP_NUMBER
+			);
 		}
 	}
 
 	//Set the element's period
-	public boolean setPeriod (int period) {
+	public void setPeriod (int period) throws ElementDataException {
 		//Check for a valid period
 		if (period > 0) {
 			this.period = period;
-			return true;
 		} else {
-			return false;
+			throw ElementDataException.create(
+					"" + period,
+					ElementDataException.ExceptionType.INVALID_PERIOD_NUMBER
+			);
 		}
 	}
 
 	//Set the element's molar mass
-	public boolean setMolarMass(double molarMass) {
+	public void setMolarMass(double molarMass) throws ElementDataException {
 		//Check for a valid molar mass
 		if (molarMass > 0) {
 			this.molarMass = molarMass;
-			return true;
 		} else {
-			return false;
+			throw ElementDataException.create(
+					"" + molarMass,
+					ElementDataException.ExceptionType.INVALID_MOLAR_MASS
+			);
 		}
 	}
 
+	//Helper function for setName and setSymbol: check whether all characters are letters
+	private static boolean allLetters (String s) {
+		s = s.toLowerCase();
+
+		//Iterate through all letters
+		for (int i = 0; i < s.length(); i++) {
+			char curChar = s.charAt(i);
+
+			if (curChar < 'a' || curChar > 'z') {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
 	//Set the element's name
-	public boolean setName(String name) {
+	public void setName(String name) throws ElementDataException {
 		//Check for a valid name
-		if (name.length() != 0) {
+		if (name.length() != 0 && allLetters(name)) {
+
 			//Ensure that name is lowercase
 			this.name = name.toLowerCase();
-			return true;
 		} else {
-			return false;
+			throw ElementDataException.create(
+					name,
+					ElementDataException.ExceptionType.INVALID_NAME
+			);
 		}
 	}
 
 	//Set the element's chemical symbol
-	public boolean setSymbol(String symbol) {
+	public void setSymbol(String symbol) throws ElementDataException {
 		//Check for a valid symbol
-		if (symbol.length() != 0) {
+		if (symbol.length() != 0 && allLetters(symbol)) {
+
 			//Ensure that only the first letter of the symbol is uppercase
 			symbol = symbol.toLowerCase();
 			this.symbol = (char) (symbol.charAt(0) + ('A' - 'a')) + symbol.substring(1);
-			return true;
 		} else {
-			return false;
+			throw ElementDataException.create(
+					"" + symbol,
+					ElementDataException.ExceptionType.INVALID_SYMBOL
+			);
 		}
 	}
 
@@ -175,41 +206,70 @@ public class Element {
 	}
 
 	//Deserialize element data
-	public static Element deserialize (String serializedData) throws DataFormatException {
+	public static Element deserialize (String serializedData) throws
+			DataFormatException, ElementDataException {
+
 		DataParser parser = new DataParser();
 
 		String[] dataArray = parser.parse(serializedData);
 
 		//Check for the expected data length
 		if (dataArray.length != 6) {
-			return null;
+			throw ElementDataException.create(
+					"" + dataArray.length,
+					ElementDataException.ExceptionType.INVALID_LENGTH
+			);
 		}
-
-		//Flag boolean to mark whether the deserialization was successful
-		boolean deserializationSuccessful = true;
 
 		Element newElement = new Element();
 
-		//Set element properties
-		deserializationSuccessful &=
-				newElement.setAtomicNumber  (Integer.parseInt(dataArray[0]));
-		deserializationSuccessful &=
-				newElement.setGroup         (Integer.parseInt(dataArray[1]));
-		deserializationSuccessful &=
-				newElement.setPeriod        (Integer.parseInt(dataArray[2]));
-		deserializationSuccessful &=
-				newElement.setMolarMass     (Double.parseDouble(dataArray[3]));
-		deserializationSuccessful &=
-				newElement.setName          (dataArray[4]);
-		deserializationSuccessful &=
-				newElement.setSymbol        (dataArray[5]);
-
-		//Check whether the deserialization was successful
-		if (deserializationSuccessful) {
-			return newElement;
+		//Set atomic number
+		try {
+			newElement.setAtomicNumber(Integer.parseInt(dataArray[0]));
+		} catch (NumberFormatException e) {
+			throw ElementDataException.create(
+					"" + dataArray[0],
+					ElementDataException.ExceptionType.INVALID_ATOMIC_NUMBER
+			);
 		}
 
-		return null;
+		//Set group number
+		try {
+			newElement.setGroup(Integer.parseInt(dataArray[1]));
+		} catch (NumberFormatException e) {
+			throw ElementDataException.create(
+					"" + dataArray[1],
+					ElementDataException.ExceptionType.INVALID_GROUP_NUMBER
+			);
+		}
+
+		//Set period number
+		try {
+			newElement.setPeriod(Integer.parseInt(dataArray[2]));
+		} catch (NumberFormatException e) {
+			throw ElementDataException.create(
+					"" + dataArray[2],
+					ElementDataException.ExceptionType.INVALID_PERIOD_NUMBER
+			);
+		}
+
+		//Set molar mass
+		try {
+			newElement.setMolarMass(Double.parseDouble(dataArray[3]));
+		} catch (NumberFormatException e) {
+			throw ElementDataException.create(
+					"" + dataArray[3],
+					ElementDataException.ExceptionType.INVALID_MOLAR_MASS
+			);
+		}
+
+		//Set name
+		newElement.setName(dataArray[4]);
+
+		//Set symbol
+		newElement.setSymbol(dataArray[5]);
+
+		return newElement;
 	}
 
 	//-----------------[Object serialization ends here]-----------------//

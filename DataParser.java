@@ -5,6 +5,7 @@ package Molecularize;
 \*----------------------------------------------------------------------*/
 
 public class DataParser {
+
 	//-----------------[Constant declaration begins here]----------------//
 
 	static final char OPEN_CURLY_BRACKET  = '{';

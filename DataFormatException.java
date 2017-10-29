@@ -5,24 +5,31 @@ package Molecularize;
 \*-------------------------------------------------*/
 
 public class DataFormatException extends Exception {
+
 	//-----------------[Constant declaration begins here]----------------//
 
 	//Possible reasons for an error
 	public enum ExceptionType {
-		EXPECTING_BEGINNING,
-		EXPECTING_SEPARATOR,
-		EXPECTING_ENDING,
-		NO_DATA
+		EXPECTING_BEGINNING,    //Missing open bracket
+		EXPECTING_SEPARATOR,    //Missing datum separator
+		EXPECTING_ENDING,       //Missing close bracket
+		NO_DATA                 //No data found
 	}
 
-	//Error messages
+	//Error message for a missing open bracket
 	public static final String EXPECTING_BEGINNING_MESSAGE =
 			"Expecting '" + DataParser.OPEN_CURLY_BRACKET  + "' at index ";
+
+	//Error message for a missing datum separator
 	public static final String EXPECTING_SEPARATOR_MESSAGE =
 			"Expecting '" + DataParser.DATUM_SEPARATOR     + "' at index ";
+
+	//Error message for a missing close bracket
 	public static final String EXPECTING_ENDING_MESSAGE    =
 			"Expecting '" + DataParser.CLOSE_CURLY_BRACKET + "' at index ";
-	public static final String NO_DATA_MESSAGE =
+
+	//Error message for no data
+	public static final String NO_DATA_MESSAGE             =
 			"Expecting data at index ";
 
 	//------------------[Constant declaration ends here]-----------------//
@@ -31,9 +38,9 @@ public class DataFormatException extends Exception {
 
 	//-----------------[Variable declaration begins here]----------------//
 
-	private int           index;
-	private String        data;
-	private ExceptionType errorReason;
+	private String        data;             //Raw data
+	private int           index;            //Index of error in data
+	private ExceptionType errorReason;      //Reason for the error
 
 	//------------------[Variable declaration ends here]-----------------//
 
@@ -77,10 +84,10 @@ public class DataFormatException extends Exception {
 
 
 	//----------------------[Accessors begin here]-----------------------//
-
 	public String getData() {
 		return data;
 	}
+
 
 	public int getIndex() {
 		return index;
