@@ -84,6 +84,7 @@ public class DataFormatException extends Exception {
 
 
 	//----------------------[Accessors begin here]-----------------------//
+
 	public String getData() {
 		return data;
 	}

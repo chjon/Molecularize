@@ -264,7 +264,7 @@ public class Element {
 		}
 
 		//Set name
-		newElement.setName(dataArray[4]);
+		newElement.setName  (dataArray[4]);
 
 		//Set symbol
 		newElement.setSymbol(dataArray[5]);
@@ -273,4 +273,39 @@ public class Element {
 	}
 
 	//-----------------[Object serialization ends here]-----------------//
+
+
+
+	//-----------------[Comparison functions begin here]----------------//
+
+	//Check whether two elements are equal
+	public boolean equals (Element toCompare) {
+		//Check whether the element to compare is null
+		if (toCompare == null) {
+			return false;
+		}
+
+		return (this.getAtomicNumber() == toCompare.getAtomicNumber        ()  &&
+				this.getGroup       () == toCompare.getGroup               ()  &&
+				this.getPeriod      () == toCompare.getPeriod              ()  &&
+				this.getMolarMass   () == toCompare.getMolarMass           ()  &&
+				this.getName        ().equalsIgnoreCase(toCompare.getName  ()) &&
+				this.getSymbol      ().equalsIgnoreCase(toCompare.getSymbol())
+		);
+	}
+
+	//Check whether two elements have the same identifying information
+	public boolean conflicts (Element toCompare) {
+		//Check whether the element to compare is null
+		if (toCompare == null) {
+			return false;
+		}
+
+		return (this.getAtomicNumber() == toCompare.getAtomicNumber        ()  ||
+				this.getName        ().equalsIgnoreCase(toCompare.getName  ()) ||
+				this.getSymbol      ().equalsIgnoreCase(toCompare.getSymbol())
+		);
+	}
+
+	//------------------[Comparison functions end here]-----------------//
 }
