@@ -22,6 +22,7 @@ public class Element {
 	//---------------------[Constructors begin here]---------------------//
 
 	private Element () {
+
 		//Initialize variables to invalid states
 		this.atomicNumber = -1;
 		this.group        = -1;
@@ -170,7 +171,7 @@ public class Element {
 
 
 
-	//--------------[Object validity checking begins here]--------------//
+	//--------------[Element validity checking begins here]-------------//
 
 	public static boolean isValid (Element elementToSerialize) {
 		return
@@ -183,7 +184,7 @@ public class Element {
 				elementToSerialize.getSymbol().length() != 0;           //Check for a valid symbol
 	}
 
-	//---------------[Object validity checking ends here]---------------//
+	//---------------[Element validity checking ends here]--------------//
 
 
 
@@ -191,6 +192,7 @@ public class Element {
 
 	//Serialize element data
 	public static String serialize (Element elementToSerialize) {
+
 		//Check whether the element is valid and serializable
 		if (!isValid(elementToSerialize)) {
 			return null;
@@ -211,6 +213,7 @@ public class Element {
 
 		DataParser parser = new DataParser();
 
+		//Get list of separated data
 		String[] dataArray = parser.parse(serializedData);
 
 		//Check for the expected data length
@@ -280,6 +283,7 @@ public class Element {
 
 	//Check whether two elements are equal
 	public boolean equals (Element toCompare) {
+
 		//Check whether the element to compare is null
 		if (toCompare == null) {
 			return false;
@@ -296,6 +300,7 @@ public class Element {
 
 	//Check whether two elements have the same identifying information
 	public boolean conflicts (Element toCompare) {
+
 		//Check whether the element to compare is null
 		if (toCompare == null) {
 			return false;
