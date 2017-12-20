@@ -16,9 +16,9 @@ public class Molecule {
 
 	//------------------[Field declarations begin here]------------------//
 
-	private Element[] elements;         //The array of different types of elements in the molecule
-	private int[]     elementCounts;    //The number of each element in the molecule
-	private int       numElements;      //The number of different elements in the molecule
+	protected Molecule[] molecules;         //The array of different types of elements in the molecule
+	protected int[]      moleculeCounts;    //The number of each element in the molecule
+	protected int        numMolecules;      //The number of different elements in the molecule
 
 	//-------------------[Field declarations end here]-------------------//
 
@@ -26,12 +26,12 @@ public class Molecule {
 
 	//---------------------[Constructors begin here]---------------------//
 
-	private Molecule () {
+	protected Molecule () {
 
 		//Initialize fields to invalid values
-		numElements   = -1;
-		elements      = null;
-		elementCounts = null;
+		numMolecules    = -1;
+		molecules       = null;
+		moleculeCounts  = null;
 	}
 
 	//----------------------[Constructors end here]----------------------//
@@ -44,13 +44,28 @@ public class Molecule {
 	public String getMolecularFormula () {
 		StringBuilder output = new StringBuilder();
 
-		//Loop through each element
-		for (int i = 0; i < this.numElements; i++) {
-			output.append(this.elements     [i].getSymbol());
+		//Loop through each molecule
+		for (int i = 0; i < this.numMolecules; i++) {
+			//Check if molecule is an element
+			if (this.molecules[i] instanceof Element) {
+				output.append(this.molecules[i].getMolecularFormula());
+			} else {
+				//Only output brackets if there is more than one of the same molecule
+				if (this.moleculeCounts[i] > 1) {
+					output.append("(");
+				}
 
-			//Only output a number if there is more than one of the same element
-			if (this.elementCounts[i] > 1) {
-				output.append(this.elementCounts[i]);
+				output.append(this.molecules[i].getMolecularFormula());
+
+				//Only output brackets if there is more than one of the same molecule
+				if (this.moleculeCounts[i] > 1) {
+					output.append(")");
+				}
+			}
+
+			//Only output a number if there is more than one of the same molecule
+			if (this.moleculeCounts[i] > 1) {
+				output.append(this.moleculeCounts[i]);
 			}
 		}
 
@@ -67,8 +82,8 @@ public class Molecule {
 		double output = 0;
 
 		//Loop through each element
-		for (int i = 0; i < this.numElements; i++) {
-			output += elements[i].getMolarMass() * elementCounts[i];
+		for (int i = 0; i < this.numMolecules; i++) {
+			output += molecules[i].getMolarMass() * moleculeCounts[i];
 		}
 
 		return output;
@@ -81,14 +96,30 @@ public class Molecule {
 	//--------------[Molecule validity checking begins here]-------------//
 
 	public static boolean isValid (Molecule moleculeToCheck) {
-		return	moleculeToCheck                 != null &&     //Check whether object exists
-				moleculeToCheck.elements        != null &&     //Check whether element list exists
-				moleculeToCheck.elementCounts   != null &&     //Check whether element count array exists
-				moleculeToCheck.numElements     >  0    &&     //Check whether the number of elements has been set
-				moleculeToCheck.numElements     ==             //Check whether the size of the element array is the same
-						moleculeToCheck.elements.length &&     //as the number of elements
-				moleculeToCheck.numElements     ==             //Check whether the size of the element count array is
-						moleculeToCheck.elementCounts.length;  //the same as the number of elements
+		//Check if molecule is a single element
+		if (moleculeToCheck instanceof Element) {
+			return Element.isValid((Element)moleculeToCheck);
+		}
+
+		boolean isValid =
+				moleculeToCheck                 != null  &&     //Check whether object exists
+				moleculeToCheck.molecules       != null  &&     //Check whether element list exists
+				moleculeToCheck.moleculeCounts  != null  &&     //Check whether element count array exists
+				moleculeToCheck.numMolecules    >  0     &&     //Check whether the number of elements has been set
+				moleculeToCheck.numMolecules    ==              //Check whether the size of the element array is the same
+						moleculeToCheck.molecules.length &&     //as the number of elements
+				moleculeToCheck.numMolecules    ==              //Check whether the size of the element count array is
+						moleculeToCheck.moleculeCounts.length;  //the same as the number of elements
+
+		if (!isValid) {
+			return false;
+		} else {
+			for (int i = 0; i < moleculeToCheck.numMolecules && isValid; i++) {
+				isValid &= isValid(moleculeToCheck.molecules[i]);
+			}
+
+			return isValid;
+		}
 	}
 
 	//--------------[Molecule validity checking ends here]--------------//
@@ -106,17 +137,25 @@ public class Molecule {
 		} else {
 			StringBuilder output = new StringBuilder();
 
-			//Serialize number of unique elements
-			output.append("{" + NUM_ELEMENTS_PREFIX + moleculeToSerialize.numElements + "},{");
+			//Serialize number of unique molecules
+			output.append("{" + NUM_ELEMENTS_PREFIX + moleculeToSerialize.numMolecules + "},{");
 
-			//Serialize each element
-			for (int i = 0; i < moleculeToSerialize.numElements; i++) {
+			//Serialize each molecule
+			for (int i = 0; i < moleculeToSerialize.numMolecules; i++) {
 				output.append("{");
-				output.append(moleculeToSerialize.elements     [i].getAtomicNumber() + "},{");
-				output.append(moleculeToSerialize.elementCounts[i] + "}");
 
-				if (i < moleculeToSerialize.numElements - 1) {
-					output.append(",");
+				//Check if molecule is an element
+				if (moleculeToSerialize.molecules[i] instanceof Element) {
+					output.append(((Element)moleculeToSerialize.molecules[i]).getAtomicNumber() + "},{");
+				} else {
+					output.append(Molecule.serialize(moleculeToSerialize.molecules[i]) + "},{");
+				}
+
+				output.append(moleculeToSerialize.moleculeCounts[i] + "}");
+
+				//Check if molecule is last in list
+				if (i < moleculeToSerialize.numMolecules - 1) {
+					output.append("},{");
 				} else {
 					output.append("}");
 				}
@@ -145,40 +184,49 @@ public class Molecule {
 			Molecule output = new Molecule();
 
 			//Create arrays of the correct size
-			output.numElements   = Integer.parseInt(dataArray[0].substring(NUM_ELEMENTS_PREFIX.length()));
-			output.elements      = new Element[output.numElements];
-			output.elementCounts = new int    [output.numElements];
+			output.numMolecules   = Integer.parseInt(dataArray[0].substring(NUM_ELEMENTS_PREFIX.length()));
+			output.molecules      = new Molecule[output.numMolecules];
+			output.moleculeCounts = new int     [output.numMolecules];
 
 			//Check for conflicting data array length
-			if (output.numElements != dataArray.length - 1) {
+			if (output.numMolecules != dataArray.length - 1) {
 				throw MoleculeDataException.create(
 						MoleculeDataException.ExceptionType.INVALID_ELEMENT_FORMAT
 				);
 			}
 
-			//Fill elements array
-			for (int i = 0; i < output.numElements; i++) {
-				// Get list of element data
-				String[] elementDataArray = parser.parse(dataArray[i + 1]);
+			//Fill molecules array
+			for (int i = 0; i < output.numMolecules; i++) {
+				// Get list of molecule data
+				String[] moleculeDataArray = parser.parse(dataArray[i + 1]);
 
 				//Check for a properly formatted dataset
-				if (elementDataArray.length != 2) {
+				if (moleculeDataArray.length != 2) {
 					throw MoleculeDataException.create(
 							MoleculeDataException.ExceptionType.INVALID_ELEMENT_FORMAT
 					);
 				} else {
-					try {
-						output.elements[i] = lookUpTable.getElement(Integer.parseInt(elementDataArray[0]));
-						output.elementCounts[i] = Integer.parseInt(elementDataArray[1]);
+					//Check for a nested molecule
+					if (moleculeDataArray[0].charAt(0) == '{') {
+						output.molecules[i] = Molecule.deserialize(moleculeDataArray[0], lookUpTable);;
+					//Handle single elements
+					} else {
+						output.molecules[i] = lookUpTable.getElement(Integer.parseInt(moleculeDataArray[0]));
 
 						//Check whether the element could be found
-						if (output.elements[i] == null) {
+						if (output.molecules[i] == null) {
 							throw MoleculeDataException.create(
 									MoleculeDataException.ExceptionType.ELEMENT_NOT_FOUND
 							);
+						}
+					}
+
+					//Get molecule count
+					try {
+						output.moleculeCounts[i] = Integer.parseInt(moleculeDataArray[1]);
 
 						//Check whether the element count is valid
-						} else if (output.elementCounts[i] < 1) {
+						if (output.moleculeCounts[i] < 1) {
 							throw MoleculeDataException.create(
 									MoleculeDataException.ExceptionType.INVALID_ELEMENT_DATA
 							);

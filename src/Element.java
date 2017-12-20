@@ -4,7 +4,7 @@ package Molecularize.src;
 	This class stores data about an element of the periodic table.
 \*------------------------------------------------------------------*/
 
-public class Element {
+public class Element extends Molecule {
 
 	//------------------[Field declarations begin here]------------------//
 
@@ -22,8 +22,9 @@ public class Element {
 	//---------------------[Constructors begin here]---------------------//
 
 	private Element () {
+		super();
 
-		//Initialize variables to invalid states
+		//Initialize variables to invalid values
 		this.atomicNumber = -1;
 		this.group        = -1;
 		this.period       = -1;
@@ -50,6 +51,7 @@ public class Element {
 		return period;
 	}
 
+	@Override
 	public double getMolarMass () {
 		return molarMass;
 	}
@@ -60,6 +62,11 @@ public class Element {
 
 	public String getSymbol() {
 		return symbol;
+	}
+
+	@Override
+	public String getMolecularFormula() {
+		return getSymbol();
 	}
 
 	//-----------------------[Accessors end here]-----------------------//
