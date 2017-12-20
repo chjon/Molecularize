@@ -133,6 +133,11 @@ public class DataParser {
 			}
 		}
 
+		//Trim preceding and succeeding whitespace from each datum
+		for (int i = 0; i < dataArray.length; i++) {
+			dataArray[i] = dataArray[i].trim();
+		}
+
 		return dataArray;
 	}
 

@@ -8,18 +8,18 @@ public class PeriodicTable {
 
 	//-----------------[Constant declaration begins here]----------------//
 
-	public static final String NUM_ELEMENTS_PREFIX = "L:";
+	public static final String NUM_ELEMENTS_PREFIX = "P:";
 
 	//------------------[Constant declaration ends here]-----------------//
 
 
 
-	//-----------------[Variable declaration begins here]----------------//
+	//------------------[Field declarations begin here]------------------//
 
 	private int tableSize;          //The size of the elements array
 	private Element[] elements;     //The array of elements
 
-	//------------------[Variable declaration ends here]-----------------//
+	//-------------------[Field declarations end here]-------------------//
 
 
 
@@ -162,11 +162,10 @@ public class PeriodicTable {
 
 	//-----------[PeriodicTable validity checking begins here]-----------//
 
-	public static boolean isValid (PeriodicTable tableToSerialize) {
-		return
-				tableToSerialize             != null &&     //Check whether object exists
-				tableToSerialize.elements    != null &&     //Check whether element list exists
-				tableToSerialize.tableSize   >  0;          //Check whether the number of elements has been set
+	public static boolean isValid (PeriodicTable tableToCheck) {
+		return	tableToCheck             != null &&     //Check whether object exists
+				tableToCheck.elements    != null &&     //Check whether element list exists
+				tableToCheck.tableSize   >  0;          //Check whether the number of elements has been set
 	}
 
 	//------------[PeriodicTable validity checking ends here]-----------//
@@ -212,6 +211,11 @@ public class PeriodicTable {
 
 		//Get list of separated data
 		String[] dataArray = parser.parse(serializedData);
+
+		//Trim preceding and succeeding whitespace from each datum
+		for (int i = 0; i < dataArray.length; i++) {
+			dataArray[i] = dataArray[i].trim();
+		}
 
 		//Create a new table
 		PeriodicTable table = new PeriodicTable();

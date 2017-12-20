@@ -224,6 +224,11 @@ public class Element {
 			);
 		}
 
+		//Trim preceding and succeeding whitespace from each datum
+		for (int i = 0; i < dataArray.length; i++) {
+			dataArray[i] = dataArray[i].trim();
+		}
+
 		Element newElement = new Element();
 
 		//Set atomic number
