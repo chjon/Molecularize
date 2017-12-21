@@ -62,7 +62,7 @@ public class DataParser {
 						);
 					}
 
-					//Check for invalid beginning of datum
+				//Check for invalid beginning of datum
 				} else if (openBracketCount == 0 && curChar != OPEN_CURLY_BRACKET) {
 					throw DataFormatException.create(
 							data,
@@ -70,11 +70,11 @@ public class DataParser {
 							DataFormatException.ExceptionType.EXPECTING_BEGINNING
 					);
 
-					//Check for beginning of datum
+				//Check for beginning of datum
 				} else if (curChar == OPEN_CURLY_BRACKET) {
 					openBracketCount++;
 
-					//Check for end of datum
+				//Check for end of datum
 				} else if (curChar == CLOSE_CURLY_BRACKET) {
 					openBracketCount--;
 
@@ -86,7 +86,7 @@ public class DataParser {
 								DataFormatException.ExceptionType.EXPECTING_SEPARATOR
 						);
 
-						//Increment number of data
+					//Increment number of data
 					} else if (openBracketCount == 0) {
 						numberOfData++;
 						expectingSeparator = true;

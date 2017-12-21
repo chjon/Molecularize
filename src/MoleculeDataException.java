@@ -14,6 +14,8 @@ public class MoleculeDataException extends Exception {
 		ELEMENT_NOT_FOUND,          //Element could not be found
 		INVALID_ELEMENT_FORMAT,     //Problem with element data format
 		INVALID_ELEMENT_DATA,       //Invalid element data
+		INVALID_MOLECULE_FORMAT,    //Invalid molecule data format
+		BRACKET_IMBALANCE,          //Detected bracket imbalance
 		NULL_ELEMENTS               //No data found
 	}
 
@@ -26,8 +28,12 @@ public class MoleculeDataException extends Exception {
 			"Number of elements not found";
 	public static final String INVALID_ELEMENT_FORMAT_MESSAGE =
 			"Received invalid element format";
+	public static final String INVALID_MOLECULE_FORMAT_MESSAGE =
+			"Received invalid molecule format";
 	public static final String INVALID_ELEMENT_DATA_MESSAGE =
 			"Received invalid element data";
+	public static final String BRACKET_IMBALANCE_MESSAGE =
+			"Detected bracket imbalance";
 
 	//------------------[Constant declaration ends here]-----------------//
 
@@ -64,6 +70,12 @@ public class MoleculeDataException extends Exception {
 				break;
 			case INVALID_ELEMENT_DATA:
 				message.append(INVALID_ELEMENT_DATA_MESSAGE);
+				break;
+			case INVALID_MOLECULE_FORMAT:
+				message.append(INVALID_MOLECULE_FORMAT_MESSAGE);
+				break;
+			case BRACKET_IMBALANCE:
+				message.append(BRACKET_IMBALANCE_MESSAGE);
 				break;
 			default:
 				message.append(NULL_ELEMENTS_MESSAGE);
