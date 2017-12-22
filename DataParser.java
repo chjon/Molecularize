@@ -1,4 +1,4 @@
-package Molecularize.src;
+package Molecularize;
 
 /*----------------------------------------------------------------------*\
 	This class is a custom parser to separate data values in a String.

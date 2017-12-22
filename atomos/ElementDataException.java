@@ -1,4 +1,4 @@
-package Molecularize.src;
+package Molecularize.atomos;
 
 /*-------------------------------------------------------*\
 	This class handles invalid Element deserialization.

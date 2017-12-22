@@ -1,4 +1,4 @@
-package Molecularize.src;
+package Molecularize;
 
 /*-------------------------------------------------*\
 	This class handles invalid DataParser input.

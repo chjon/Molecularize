@@ -1,8 +1,11 @@
-package Molecularize.src;
+package Molecularize.atomos;
 
 /*-----------------------------------------*\
 	This class stores a list of elements.
 \*-----------------------------------------*/
+
+import Molecularize.DataFormatException;
+import Molecularize.DataParser;
 
 public class PeriodicTable {
 

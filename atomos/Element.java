@@ -1,10 +1,12 @@
-package Molecularize.src;
+package Molecularize.atomos;
 
 /*------------------------------------------------------------------*\
 	This class stores data about an element of the periodic table.
 \*------------------------------------------------------------------*/
 
-public class Element extends Molecule {
+import Molecularize.DataParser;
+
+public class Element extends Particle {
 
 	//------------------[Field declarations begin here]------------------//
 
@@ -20,6 +22,18 @@ public class Element extends Molecule {
 
 
 	//---------------------[Constructors begin here]---------------------//
+
+	private Element (int charge, int atomicNumber, int group, int period, int molarMass, String name, String symbol) {
+		super(charge);
+
+		//Initialize variables to invalid values
+		this.atomicNumber = atomicNumber;
+		this.group        = group;
+		this.period       = period;
+		this.molarMass    = molarMass;
+		this.name         = name;
+		this.symbol       = symbol;
+	}
 
 	private Element () {
 		super();
@@ -216,7 +230,7 @@ public class Element extends Molecule {
 
 	//Deserialize element data
 	public static Element deserialize (String serializedData) throws
-			DataFormatException, ElementDataException {
+			Molecularize.DataFormatException, ElementDataException {
 
 		DataParser parser = new DataParser();
 

@@ -1,10 +1,10 @@
-package Molecularize.src;
+package Molecularize.atomos;
 
 /*----------------------------------------------------*\
 	This class describes a molecule made of elements
 \*----------------------------------------------------*/
 
-public class Molecule {
+public class Molecule extends Particle {
 
 	//-----------------[Constant declaration begins here]----------------//
 
@@ -16,9 +16,9 @@ public class Molecule {
 
 	//------------------[Field declarations begin here]------------------//
 
-	protected Molecule[] molecules;         //The array of different types of elements in the molecule
-	protected int[]      moleculeCounts;    //The number of each element in the molecule
-	protected int        numMolecules;      //The number of different elements in the molecule
+	protected Particle[] particles;         //The array of different types of particles in the molecule
+	protected int[]      particleCounts;    //The number of each particle in the molecule
+	protected int        numParticles;      //The number of different particle in the molecule
 
 	//-------------------[Field declarations end here]-------------------//
 
@@ -26,12 +26,22 @@ public class Molecule {
 
 	//---------------------[Constructors begin here]---------------------//
 
-	protected Molecule () {
+	protected Molecule (int charge) {
+		super(charge);
 
 		//Initialize fields to invalid values
-		numMolecules    = -1;
-		molecules       = null;
-		moleculeCounts  = null;
+		numParticles    = -1;
+		particles       = null;
+		particleCounts  = null;
+	}
+
+	protected Molecule () {
+		super();
+
+		//Initialize fields to invalid values
+		numParticles    = -1;
+		particles       = null;
+		particleCounts  = null;
 	}
 
 	//----------------------[Constructors end here]----------------------//
@@ -44,9 +54,9 @@ public class Molecule {
 	public double getMolarMass () {
 		double output = 0;
 
-		//Loop through each element
-		for (int i = 0; i < this.numMolecules; i++) {
-			output += molecules[i].getMolarMass() * moleculeCounts[i];
+		//Loop through each constituent particle
+		for (int i = 0; i < this.numParticles; i++) {
+			output += particles[i].getMolarMass() * particleCounts[i];
 		}
 
 		return output;
@@ -58,27 +68,34 @@ public class Molecule {
 
 	//--------------[Molecule validity checking begins here]-------------//
 
-	public static boolean isValid (Molecule moleculeToCheck) {
-		//Check if molecule is a single element
-		if (moleculeToCheck instanceof Element) {
-			return Element.isValid((Element)moleculeToCheck);
-		}
-
+	public static boolean isValid (Molecule mToCheck) {
+		//Check base particle validity
 		boolean isValid =
-				moleculeToCheck                 != null  &&     //Check whether object exists
-				moleculeToCheck.molecules       != null  &&     //Check whether element list exists
-				moleculeToCheck.moleculeCounts  != null  &&     //Check whether element count array exists
-				moleculeToCheck.numMolecules    >  0     &&     //Check whether the number of elements has been set
-				moleculeToCheck.numMolecules    ==              //Check whether the size of the element array is the same
-						moleculeToCheck.molecules.length &&     //as the number of elements
-				moleculeToCheck.numMolecules    ==              //Check whether the size of the element count array is
-						moleculeToCheck.moleculeCounts.length;  //the same as the number of elements
+				mToCheck.particles != null &&            //Check whether element list exists
+				mToCheck.particleCounts != null &&       //Check whether element count array exists
+				mToCheck.numParticles > 0 &&             //Check whether the number of elements has been set
+				mToCheck.numParticles ==                 //Check whether the size of the element array is the same
+						mToCheck.particles.length &&     //as the number of elements
+				mToCheck.numParticles ==                 //Check whether the size of the element count array is
+						mToCheck.particleCounts.length;  //the same as the number of elements
 
+		//Check whether base part
 		if (!isValid) {
 			return false;
+
+		//Check nested particle validity
 		} else {
-			for (int i = 0; i < moleculeToCheck.numMolecules && isValid; i++) {
-				isValid &= isValid(moleculeToCheck.molecules[i]);
+			for (int i = 0; i < mToCheck.numParticles && isValid; i++) {
+				//Check if constituent particle is a molecule
+				if (mToCheck.particles[i] instanceof Molecule) {
+					isValid &= isValid(
+							(Molecule)mToCheck.particles[i]);
+
+				//Check if constituent particle is an element
+				} else if (mToCheck.particles[i] instanceof Element) {
+					isValid &= Element.isValid(
+							(Element)mToCheck.particles[i]);
+				}
 			}
 
 			return isValid;
@@ -95,28 +112,31 @@ public class Molecule {
 	public String getMolecularFormula () {
 		StringBuilder output = new StringBuilder();
 
-		//Loop through each molecule
-		for (int i = 0; i < this.numMolecules; i++) {
-			//Check if molecule is an element
-			if (this.molecules[i] instanceof Element) {
-				output.append(this.molecules[i].getMolecularFormula());
-			} else {
+		//Loop through each constituent particle
+		for (int i = 0; i < this.numParticles; i++) {
+
+			//Check if particle is an element
+			if (this.particles[i] instanceof Element) {
+				output.append(this.particles[i].getMolecularFormula());
+
+			//Check if particle is a molecule
+			} else if (this.particles[i] instanceof Molecule) {
 				//Only output brackets if there is more than one of the same molecule
-				if (this.moleculeCounts[i] > 1) {
+				if (this.particleCounts[i] > 1) {
 					output.append("(");
 				}
 
-				output.append(this.molecules[i].getMolecularFormula());
+				output.append(this.particles[i].getMolecularFormula());
 
 				//Only output brackets if there is more than one of the same molecule
-				if (this.moleculeCounts[i] > 1) {
+				if (this.particleCounts[i] > 1) {
 					output.append(")");
 				}
 			}
 
-			//Only output a number if there is more than one of the same molecule
-			if (this.moleculeCounts[i] > 1) {
-				output.append(this.moleculeCounts[i]);
+			//Only output a number if there is more than one of the same constituent particle
+			if (this.particleCounts[i] > 1) {
+				output.append(this.particleCounts[i]);
 			}
 		}
 
@@ -129,16 +149,25 @@ public class Molecule {
 	}
 
 	//Get molecule from molecular formula
-	public static Molecule fromMolecularFormula (String molecularFormula, PeriodicTable lookUpTable) throws MoleculeDataException {
-		final char OPEN_BRACKET = '(';
-		final char CLOSE_BRACKET = ')';
-		int openBracketCount = 0;
-		int numberOfMolecules = 0;
-		char curChar = 0;
+	public static Molecule fromMolecularFormula (String molecularFormula, PeriodicTable lookUpTable) throws
+			MoleculeDataException {
+
+		final char OPEN_BRACKET    = '(';
+		final char CLOSE_BRACKET   = ')';
+		int openBracketCount       = 0;
+		int numberOfMolecules      = 0;
+		char curChar               = 0;
 		boolean foundStartOfSymbol = false;
 
 		//Remove spaces from molecularFormula
 		molecularFormula = molecularFormula.replaceAll(" ", "");
+
+		//Check for an invalid length
+		if (molecularFormula.length() == 0) {
+			throw MoleculeDataException.create(
+					MoleculeDataException.ExceptionType.INVALID_MOLECULE_FORMAT
+			);
+		}
 
 		//Check for an invalid start character
 		curChar = molecularFormula.charAt(0);
@@ -157,7 +186,7 @@ public class Molecule {
 			if (curChar == OPEN_BRACKET) {
 				openBracketCount++;
 
-				//Check for close bracket
+			//Check for close bracket
 			} else if (curChar == CLOSE_BRACKET) {
 
 				//Check for invalid bracket placement
@@ -173,7 +202,10 @@ public class Molecule {
 				if (openBracketCount == 0) {
 					numberOfMolecules++;
 				}
+
+			//Only check for other characters if brackets are closed
 			} else if (openBracketCount == 0) {
+
 				//Check for the beginning of a symbol
 				if (curChar >= 'A' && curChar <= 'Z') {
 					numberOfMolecules++;
@@ -215,9 +247,9 @@ public class Molecule {
 
 		//Create molecule for output
 		Molecule output       = new Molecule();
-		output.numMolecules   = numberOfMolecules;
-		output.molecules      = new Molecule[output.numMolecules];
-		output.moleculeCounts = new int     [output.numMolecules];
+		output.numParticles   = numberOfMolecules;
+		output.particles      = new Particle[output.numParticles];
+		output.particleCounts = new int     [output.numParticles];
 
 		foundStartOfSymbol = false;
 		openBracketCount       = 0;
@@ -235,21 +267,21 @@ public class Molecule {
 				if (openBracketCount == 0) {
 					//Check for preceding molecule
 					if (!foundStartOfSymbol) {
-						output.moleculeCounts[Math.max(0, moleculeIndex - 1)] = Math.max(1, moleculeCount);
+						output.particleCounts[Math.max(0, moleculeIndex - 1)] = Math.max(1, moleculeCount);
 
 						//Check for preceding element
 					} else {
-						output.molecules[moleculeIndex] =
+						output.particles[moleculeIndex] =
 								lookUpTable.getElementBySymbol(molecularFormula.substring(moleculeStartIndex, i));
 
 						//Check whether element could be found
-						if (output.molecules[moleculeIndex] == null) {
+						if (output.particles[moleculeIndex] == null) {
 							throw MoleculeDataException.create(
 									MoleculeDataException.ExceptionType.ELEMENT_NOT_FOUND
 							);
 						}
 
-						output.moleculeCounts[moleculeIndex] = Math.max(1, moleculeCount);
+						output.particleCounts[moleculeIndex] = Math.max(1, moleculeCount);
 						moleculeIndex++;
 					}
 
@@ -274,9 +306,9 @@ public class Molecule {
 						);
 					}
 
-					output.molecules[moleculeIndex] =
+					output.particles[moleculeIndex] =
 							fromMolecularFormula(molecularFormula.substring(moleculeStartIndex, i), lookUpTable);
-					output.moleculeCounts[moleculeIndex] = 1;
+					output.particleCounts[moleculeIndex] = 1;
 					moleculeIndex++;
 					moleculeStartIndex = -1;
 				}
@@ -289,17 +321,17 @@ public class Molecule {
 
 					//Find preceding element
 					if (foundStartOfSymbol) {
-						output.molecules[moleculeIndex] =
+						output.particles[moleculeIndex] =
 								lookUpTable.getElementBySymbol(molecularFormula.substring(moleculeStartIndex, i));
 
 						//Check whether element could be found
-						if (output.molecules[moleculeIndex] == null) {
+						if (output.particles[moleculeIndex] == null) {
 							throw MoleculeDataException.create(
 									MoleculeDataException.ExceptionType.ELEMENT_NOT_FOUND
 							);
 						}
 
-						output.moleculeCounts[moleculeIndex] = 1;
+						output.particleCounts[moleculeIndex] = 1;
 						moleculeIndex++;
 						moleculeStartIndex = -1;
 						foundStartOfSymbol = false;
@@ -307,26 +339,26 @@ public class Molecule {
 
 					moleculeCount = (moleculeCount * 10) + (curChar - '0');
 
-					//Handle beginning of symbol
+				//Handle beginning of symbol
 				} else if (curChar >= 'A' && curChar <= 'Z') {
 
 					//Check for preceding molecule
 					if (!foundStartOfSymbol) {
-						output.moleculeCounts[Math.max(0, moleculeIndex - 1)] = Math.max(1, moleculeCount);
+						output.particleCounts[Math.max(0, moleculeIndex - 1)] = Math.max(1, moleculeCount);
 
 					//Check for preceding element
 					} else {
-						output.molecules[moleculeIndex] =
+						output.particles[moleculeIndex] =
 								lookUpTable.getElementBySymbol(molecularFormula.substring(moleculeStartIndex, i));
 
 						//Check whether element could be found
-						if (output.molecules[moleculeIndex] == null) {
+						if (output.particles[moleculeIndex] == null) {
 							throw MoleculeDataException.create(
 									MoleculeDataException.ExceptionType.ELEMENT_NOT_FOUND
 							);
 						}
 
-						output.moleculeCounts[moleculeIndex] = Math.max(1, moleculeCount);
+						output.particleCounts[moleculeIndex] = Math.max(1, moleculeCount);
 						moleculeIndex++;
 					}
 
@@ -338,19 +370,19 @@ public class Molecule {
 		}
 
 		if (moleculeCount > 1) {
-			output.moleculeCounts[Math.max(0, moleculeIndex - 1)] = moleculeCount;
+			output.particleCounts[Math.max(0, moleculeIndex - 1)] = moleculeCount;
 		} else if (foundStartOfSymbol) {
-			output.molecules[moleculeIndex] =
+			output.particles[moleculeIndex] =
 					lookUpTable.getElementBySymbol(molecularFormula.substring(moleculeStartIndex));
 
 			//Check whether element could be found
-			if (output.molecules[moleculeIndex] == null) {
+			if (output.particles[moleculeIndex] == null) {
 				throw MoleculeDataException.create(
 						MoleculeDataException.ExceptionType.ELEMENT_NOT_FOUND
 				);
 			}
 
-			output.moleculeCounts[moleculeIndex] = Math.max(1, moleculeCount);
+			output.particleCounts[moleculeIndex] = Math.max(1, moleculeCount);
 		}
 
 		return output;
@@ -366,23 +398,29 @@ public class Molecule {
 			StringBuilder output = new StringBuilder();
 
 			//Serialize number of unique molecules
-			output.append("{" + NUM_ELEMENTS_PREFIX + moleculeToSerialize.numMolecules + "},{");
+			output.append("{" + NUM_ELEMENTS_PREFIX + moleculeToSerialize.numParticles + "},{");
 
 			//Serialize each molecule
-			for (int i = 0; i < moleculeToSerialize.numMolecules; i++) {
+			for (int i = 0; i < moleculeToSerialize.numParticles; i++) {
 				output.append("{");
 
-				//Check if molecule is an element
-				if (moleculeToSerialize.molecules[i] instanceof Element) {
-					output.append(((Element)moleculeToSerialize.molecules[i]).getAtomicNumber() + "},{");
+				//Check if particle is an element
+				if (moleculeToSerialize.particles[i] instanceof Element) {
+					output.append(((Element)moleculeToSerialize.particles[i]).getAtomicNumber() + "},{");
+
+				//Check if particle is a molecule
+				} else if (moleculeToSerialize.particles[i] instanceof Molecule) {
+					output.append(Molecule.serialize(((Molecule)moleculeToSerialize.particles[i])) + "},{");
+
+				//Reject if particle is neither an element nor a molecule
 				} else {
-					output.append(Molecule.serialize(moleculeToSerialize.molecules[i]) + "},{");
+					return null;
 				}
 
-				output.append(moleculeToSerialize.moleculeCounts[i] + "}");
+				output.append(moleculeToSerialize.particleCounts[i] + "}");
 
 				//Check if molecule is last in list
-				if (i < moleculeToSerialize.numMolecules - 1) {
+				if (i < moleculeToSerialize.numParticles - 1) {
 					output.append("},{");
 				} else {
 					output.append("}");
@@ -395,9 +433,9 @@ public class Molecule {
 
 	//Deserialize molecule data
 	public static Molecule deserialize (String serializedData, PeriodicTable lookUpTable) throws
-			DataFormatException, MoleculeDataException {
+			Molecularize.DataFormatException, MoleculeDataException {
 
-		DataParser parser = new DataParser();
+		Molecularize.DataParser parser = new Molecularize.DataParser();
 
 		//Get list of separated data
 		String[] dataArray = parser.parse(serializedData);
@@ -412,19 +450,19 @@ public class Molecule {
 			Molecule output = new Molecule();
 
 			//Create arrays of the correct size
-			output.numMolecules   = Integer.parseInt(dataArray[0].substring(NUM_ELEMENTS_PREFIX.length()));
-			output.molecules      = new Molecule[output.numMolecules];
-			output.moleculeCounts = new int     [output.numMolecules];
+			output.numParticles   = Integer.parseInt(dataArray[0].substring(NUM_ELEMENTS_PREFIX.length()));
+			output.particles      = new Molecule[output.numParticles];
+			output.particleCounts = new int     [output.numParticles];
 
 			//Check for conflicting data array length
-			if (output.numMolecules != dataArray.length - 1) {
+			if (output.numParticles != dataArray.length - 1) {
 				throw MoleculeDataException.create(
 						MoleculeDataException.ExceptionType.INVALID_ELEMENT_FORMAT
 				);
 			}
 
 			//Fill molecules array
-			for (int i = 0; i < output.numMolecules; i++) {
+			for (int i = 0; i < output.numParticles; i++) {
 				// Get list of molecule data
 				String[] moleculeDataArray = parser.parse(dataArray[i + 1]);
 
@@ -436,13 +474,13 @@ public class Molecule {
 				} else {
 					//Check for a nested molecule
 					if (moleculeDataArray[0].charAt(0) == '{') {
-						output.molecules[i] = Molecule.deserialize(moleculeDataArray[0], lookUpTable);;
+						output.particles[i] = Molecule.deserialize(moleculeDataArray[0], lookUpTable);
 					//Handle single elements
 					} else {
-						output.molecules[i] = lookUpTable.getElement(Integer.parseInt(moleculeDataArray[0]));
+						output.particles[i] = lookUpTable.getElement(Integer.parseInt(moleculeDataArray[0]));
 
 						//Check whether the element could be found
-						if (output.molecules[i] == null) {
+						if (output.particles[i] == null) {
 							throw MoleculeDataException.create(
 									MoleculeDataException.ExceptionType.ELEMENT_NOT_FOUND
 							);
@@ -451,10 +489,10 @@ public class Molecule {
 
 					//Get molecule count
 					try {
-						output.moleculeCounts[i] = Integer.parseInt(moleculeDataArray[1]);
+						output.particleCounts[i] = Integer.parseInt(moleculeDataArray[1]);
 
 						//Check whether the element count is valid
-						if (output.moleculeCounts[i] < 1) {
+						if (output.particleCounts[i] < 1) {
 							throw MoleculeDataException.create(
 									MoleculeDataException.ExceptionType.INVALID_ELEMENT_DATA
 							);
