@@ -112,11 +112,6 @@ public class Element extends Particle {
 
 	//----------------------[Mutators begin here]-----------------------//
 
-	//Set the particle's charge
-	public void setCharge (int charge) {
-		this.charge = charge;
-	}
-
 	//Set the element's atomic number
 	private void setAtomicNumber (int atomicNumber) throws ElementDataException {
 		//Check for a valid atomic number

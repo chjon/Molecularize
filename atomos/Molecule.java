@@ -16,9 +16,9 @@ public class Molecule extends Particle {
 
 	//------------------[Field declarations begin here]------------------//
 
-	protected Particle[] particles;         //The array of different types of particles in the molecule
-	protected int[]      particleCounts;    //The number of each particle in the molecule
-	protected int        numParticles;      //The number of different particle in the molecule
+	private Particle[] particles;       //The array of different types of particles in the molecule
+	private int[]      particleCounts;  //The number of each particle in the molecule
+	private int        numParticles;    //The number of different particle in the molecule
 
 	//-------------------[Field declarations end here]-------------------//
 
@@ -451,7 +451,9 @@ public class Molecule extends Particle {
 					return null;
 				}
 
-				output.append(moleculeToSerialize.particleCounts[i] + "}");
+				//Output charge and particle count
+				output.append(moleculeToSerialize.particles[i].getCharge() + "},{");
+				output.append(moleculeToSerialize.particleCounts[i]        + "}");
 
 				//Check if molecule is last in list
 				if (i < moleculeToSerialize.numParticles - 1) {
@@ -485,7 +487,7 @@ public class Molecule extends Particle {
 
 			//Create arrays of the correct size
 			output.numParticles   = Integer.parseInt(dataArray[0].substring(NUM_ELEMENTS_PREFIX.length()));
-			output.particles      = new Molecule[output.numParticles];
+			output.particles      = new Particle[output.numParticles];
 			output.particleCounts = new int     [output.numParticles];
 
 			//Check for conflicting data array length
@@ -501,7 +503,7 @@ public class Molecule extends Particle {
 				String[] moleculeDataArray = parser.parse(dataArray[i + 1]);
 
 				//Check for a properly formatted dataset
-				if (moleculeDataArray.length != 2) {
+				if (moleculeDataArray.length != 3) {
 					throw MoleculeDataException.create(
 							MoleculeDataException.ExceptionType.INVALID_ELEMENT_FORMAT
 					);
@@ -521,9 +523,27 @@ public class Molecule extends Particle {
 						}
 					}
 
-					//Get molecule count
+					//Get particle charge
 					try {
-						output.particleCounts[i] = Integer.parseInt(moleculeDataArray[1]);
+						int charge = Integer.parseInt(moleculeDataArray[1]);
+
+						//Copy particle if there is a charge and the particle is an element
+						if (output.particles[i] instanceof Element && charge != 0) {
+							output.particles[i] = new Element((Element)output.particles[i]);
+						}
+
+						output.particles[i].setCharge(Integer.parseInt(moleculeDataArray[1]));
+
+					//Handle invalid integer
+					} catch (NumberFormatException e) {
+						throw MoleculeDataException.create(
+								MoleculeDataException.ExceptionType.INVALID_ELEMENT_DATA
+						);
+					}
+
+					//Get particle count
+					try {
+						output.particleCounts[i] = Integer.parseInt(moleculeDataArray[2]);
 
 						//Check whether the element count is valid
 						if (output.particleCounts[i] < 1) {
