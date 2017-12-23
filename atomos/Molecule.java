@@ -1,7 +1,7 @@
 package Molecularize.atomos;
 
 /*----------------------------------------------------*\
-	This class describes a molecule made of elements
+	This class describes a compound made of elements
 \*----------------------------------------------------*/
 
 public class Molecule extends Particle {
@@ -26,7 +26,7 @@ public class Molecule extends Particle {
 
 	//---------------------[Constructors begin here]---------------------//
 
-	protected Molecule (int charge) {
+	private Molecule (int charge) {
 		super(charge);
 
 		//Initialize fields to invalid values
@@ -35,13 +35,39 @@ public class Molecule extends Particle {
 		particleCounts  = null;
 	}
 
-	protected Molecule () {
+	private Molecule () {
 		super();
 
 		//Initialize fields to invalid values
 		numParticles    = -1;
 		particles       = null;
 		particleCounts  = null;
+	}
+
+	//Copy constructor (deep copy)
+	public Molecule (Molecule source) {
+		this.numParticles   = source.numParticles;
+		this.particles      = new Particle[this.numParticles];
+		this.particleCounts = new int     [this.numParticles];
+
+		//Copy particles
+		for (int i = 0; i < this.numParticles; i++) {
+
+			//Check if particle is an element
+			if (source.particles[i] instanceof Element) {
+				this.particles[i] = new Element((Element)source.particles[i]);
+
+			//Check if particle is a molecule
+			} else if (source.particles[i] instanceof Molecule) {
+				this.particles[i] = new Molecule((Molecule)source.particles[i]);
+
+			//Copy by reference by default
+			} else {
+				this.particles[i] = source.particles[i];
+			}
+
+			this.particleCounts[i] = source.particleCounts[i];
+		}
 	}
 
 	//----------------------[Constructors end here]----------------------//
@@ -60,6 +86,19 @@ public class Molecule extends Particle {
 		}
 
 		return output;
+	}
+
+	//Get charge
+	@Override
+	public int getCharge () {
+		int charge = 0;
+
+		//Loop through each constituent particle
+		for (int i = 0; i < this.numParticles; i++) {
+			charge += particles[i].getCharge() * particleCounts[i];
+		}
+
+		return charge;
 	}
 
 	//-------------------[Molecule accessors end here]-------------------//
@@ -141,11 +180,6 @@ public class Molecule extends Particle {
 		}
 
 		return output.toString();
-	}
-
-	//Alias for molecularFormula()
-	public String toString () {
-		return getMolecularFormula();
 	}
 
 	//Get molecule from molecular formula
@@ -511,4 +545,40 @@ public class Molecule extends Particle {
 	}
 
 	//-----------------[Object serialization ends here]------------------//
+
+
+
+	//-----------------[Comparison functions begin here]----------------//
+
+	//Check whether two molecules are equal
+	public boolean equals (Particle pToCompare) {
+
+		//Check whether the molecule to compare is null
+		if (pToCompare == null) {
+			return false;
+		}
+
+		//Check for a type-match
+		if (!(pToCompare instanceof Molecule)) {
+			return false;
+		}
+
+		Molecule mToCompare = (Molecule)pToCompare;
+
+		//Check if the number of particles in each molecule are equal
+		if (this.numParticles != mToCompare.numParticles) {
+			return false;
+		}
+
+		//Loop through each constituent particle
+		for (int i = 0; i < this.numParticles; i++) {
+			if (!this.particles[i].equals(mToCompare.particles[i])) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	//------------------[Comparison functions end here]-----------------//
 }

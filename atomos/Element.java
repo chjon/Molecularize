@@ -47,6 +47,17 @@ public class Element extends Particle {
 		this.symbol       = "";
 	}
 
+	//Copy constructor (deep copy)
+	public Element (Element source) {
+		this.charge       = source.getCharge();
+		this.atomicNumber = source.getAtomicNumber();
+		this.group        = source.getGroup();
+		this.period       = source.getPeriod();
+		this.molarMass    = source.getMolarMass();
+		this.name         = source.getName();
+		this.symbol       = source.getSymbol();
+	}
+
 	//----------------------[Constructors end here]----------------------//
 
 
@@ -65,7 +76,6 @@ public class Element extends Particle {
 		return period;
 	}
 
-	@Override
 	public double getMolarMass () {
 		return molarMass;
 	}
@@ -78,68 +88,9 @@ public class Element extends Particle {
 		return symbol;
 	}
 
-	@Override
-	public String getMolecularFormula() {
-		return getSymbol();
-	}
-
 	//-----------------------[Accessors end here]-----------------------//
 
 
-
-	//----------------------[Mutators begin here]-----------------------//
-
-	//Set the element's atomic number
-	public void setAtomicNumber (int atomicNumber) throws ElementDataException {
-		//Check for a valid atomic number
-		if (atomicNumber > 0) {
-			this.atomicNumber = atomicNumber;
-		} else {
-			throw ElementDataException.create(
-					"" + atomicNumber,
-					ElementDataException.ExceptionType.INVALID_ATOMIC_NUMBER
-			);
-		}
-	}
-
-	//Set the element's group
-	public void setGroup (int group) throws ElementDataException {
-		//Check for a valid group
-		if (group > 0) {
-			this.group = group;
-		} else {
-			throw ElementDataException.create(
-					"" + group,
-					ElementDataException.ExceptionType.INVALID_GROUP_NUMBER
-			);
-		}
-	}
-
-	//Set the element's period
-	public void setPeriod (int period) throws ElementDataException {
-		//Check for a valid period
-		if (period > 0) {
-			this.period = period;
-		} else {
-			throw ElementDataException.create(
-					"" + period,
-					ElementDataException.ExceptionType.INVALID_PERIOD_NUMBER
-			);
-		}
-	}
-
-	//Set the element's molar mass
-	public void setMolarMass(double molarMass) throws ElementDataException {
-		//Check for a valid molar mass
-		if (molarMass > 0) {
-			this.molarMass = molarMass;
-		} else {
-			throw ElementDataException.create(
-					"" + molarMass,
-					ElementDataException.ExceptionType.INVALID_MOLAR_MASS
-			);
-		}
-	}
 
 	//Helper function for setName and setSymbol: check whether all characters are letters
 	private static boolean allLetters (String s) {
@@ -157,8 +108,69 @@ public class Element extends Particle {
 		return true;
 	}
 
+
+
+	//----------------------[Mutators begin here]-----------------------//
+
+	//Set the particle's charge
+	public void setCharge (int charge) {
+		this.charge = charge;
+	}
+
+	//Set the element's atomic number
+	private void setAtomicNumber (int atomicNumber) throws ElementDataException {
+		//Check for a valid atomic number
+		if (atomicNumber > 0) {
+			this.atomicNumber = atomicNumber;
+		} else {
+			throw ElementDataException.create(
+					"" + atomicNumber,
+					ElementDataException.ExceptionType.INVALID_ATOMIC_NUMBER
+			);
+		}
+	}
+
+	//Set the element's group
+	private void setGroup (int group) throws ElementDataException {
+		//Check for a valid group
+		if (group > 0) {
+			this.group = group;
+		} else {
+			throw ElementDataException.create(
+					"" + group,
+					ElementDataException.ExceptionType.INVALID_GROUP_NUMBER
+			);
+		}
+	}
+
+	//Set the element's period
+	private void setPeriod (int period) throws ElementDataException {
+		//Check for a valid period
+		if (period > 0) {
+			this.period = period;
+		} else {
+			throw ElementDataException.create(
+					"" + period,
+					ElementDataException.ExceptionType.INVALID_PERIOD_NUMBER
+			);
+		}
+	}
+
+	//Set the element's molar mass
+	private void setMolarMass(double molarMass) throws ElementDataException {
+		//Check for a valid molar mass
+		if (molarMass > 0) {
+			this.molarMass = molarMass;
+		} else {
+			throw ElementDataException.create(
+					"" + molarMass,
+					ElementDataException.ExceptionType.INVALID_MOLAR_MASS
+			);
+		}
+	}
+
 	//Set the element's name
-	public void setName(String name) throws ElementDataException {
+	private void setName(String name) throws ElementDataException {
 		//Check for a valid name
 		if (name.length() != 0 && allLetters(name)) {
 
@@ -173,7 +185,7 @@ public class Element extends Particle {
 	}
 
 	//Set the element's chemical symbol
-	public void setSymbol(String symbol) throws ElementDataException {
+	private void setSymbol(String symbol) throws ElementDataException {
 		//Check for a valid symbol
 		if (symbol.length() != 0 && allLetters(symbol)) {
 
@@ -210,6 +222,11 @@ public class Element extends Particle {
 
 
 	//----------------[Object serialization begins here]----------------//
+
+	//Get atomic symbol for output
+	public String getMolecularFormula() {
+		return getSymbol();
+	}
 
 	//Serialize element data
 	public static String serialize (Element elementToSerialize) {
@@ -308,19 +325,27 @@ public class Element extends Particle {
 	//-----------------[Comparison functions begin here]----------------//
 
 	//Check whether two elements are equal
-	public boolean equals (Element toCompare) {
+	public boolean equals (Particle pToCompare) {
 
 		//Check whether the element to compare is null
-		if (toCompare == null) {
+		if (pToCompare == null) {
 			return false;
 		}
 
-		return (this.getAtomicNumber() == toCompare.getAtomicNumber        ()  &&
-				this.getGroup       () == toCompare.getGroup               ()  &&
-				this.getPeriod      () == toCompare.getPeriod              ()  &&
-				this.getMolarMass   () == toCompare.getMolarMass           ()  &&
-				this.getName        ().equalsIgnoreCase(toCompare.getName  ()) &&
-				this.getSymbol      ().equalsIgnoreCase(toCompare.getSymbol())
+		//Check for a type-match
+		if (!(pToCompare instanceof Element)) {
+			return false;
+		}
+
+		Element eToCompare = (Element)pToCompare;
+
+		return (this.getCharge      () == eToCompare.getCharge              ()  &&
+				this.getAtomicNumber() == eToCompare.getAtomicNumber        ()  &&
+				this.getGroup       () == eToCompare.getGroup               ()  &&
+				this.getPeriod      () == eToCompare.getPeriod              ()  &&
+				this.getMolarMass   () == eToCompare.getMolarMass           ()  &&
+				this.getName        ().equalsIgnoreCase(eToCompare.getName  ()) &&
+				this.getSymbol      ().equalsIgnoreCase(eToCompare.getSymbol())
 		);
 	}
 

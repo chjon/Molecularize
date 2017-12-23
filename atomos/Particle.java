@@ -34,5 +34,24 @@ public abstract class Particle {
 	public abstract double getMolarMass();
 	public abstract String getMolecularFormula();
 
+	public int getCharge () {
+		return charge;
+	}
+
+	//Output molecular formula
+	@Override
+	public String toString() {
+		return this.getMolecularFormula();
+	}
+
 	//-----------------------[Accessors end here]------------------------//
+
+
+
+	//-----------------[Comparison functions begin here]----------------//
+
+	//Check whether two particles are equal
+	public abstract boolean equals (Particle pToCompare);
+
+	//------------------[Comparison functions end here]-----------------//
 }
