@@ -24,9 +24,12 @@ public class UnitType {
 		this.parentTypes = null;
 	}
 
-	public UnitType (String property, ArrayList<UnitTypeWrapper> parentTypes) {
+	public UnitType (String property, ArrayList<UnitTypeWrapper> parentTypes) throws UnitTypeException {
+		//Check for null property
 		if (property == null) {
-			this.property = null;
+			throw UnitTypeException.create(
+					UnitTypeException.ExceptionType.NULL_PROPERTY
+			);
 		} else {
 			this.property = property.toLowerCase();
 		}
@@ -34,6 +37,32 @@ public class UnitType {
 		this.parentTypes = parentTypes;
 
 		this.simplify();
+	}
+
+	//Copy constructor
+	public UnitType (UnitType source) throws UnitTypeException {
+		//Check for null source
+		if (source == null) {
+			throw UnitTypeException.create(
+					UnitTypeException.ExceptionType.NULL_OBJECT
+			);
+		} else {
+			this.property = source.property;
+
+			//Check for null parent types
+			if (source.parentTypes == null) {
+				this.parentTypes = null;
+			} else {
+				this.parentTypes = new ArrayList<>();
+
+				//Copy parent types from source
+				for (UnitTypeWrapper typeWrapper : source.parentTypes) {
+					this.parentTypes.add(new UnitTypeWrapper(
+							typeWrapper.getUnitType(), typeWrapper.getExponent()
+					));
+				}
+			}
+		}
 	}
 
 	//----------------------[Constructors end here]----------------------//
@@ -44,31 +73,45 @@ public class UnitType {
 
 	//Get the name of the property represented by this unit type
 	public String getProperty () {
-		StringBuilder output = new StringBuilder();
+		return this.property;
+	}
 
-		//Check if property exists
-		if (this.property != null) {
-			output.append(this.property);
-			output.append(": ");
-		}
-
+	public String getBaseProperties () {
 		//Check if unit type is a base type
 		if (!this.isBaseType()) {
+			StringBuilder output = new StringBuilder();
+
 			for (UnitTypeWrapper typeWrapper : parentTypes) {
 				output.append(typeWrapper.getUnitType().property);
 				output.append("^(");
 				output.append(typeWrapper.getExponent());
 				output.append(")");
 			}
-		}
 
-		return output.toString();
+			return output.toString();
+		} else {
+			return null;
+		}
 	}
 
 	//Alias for getProperty()
 	@Override
 	public String toString () {
-		return getProperty();
+		String property       = this.getProperty();
+		String baseProperties = this.getBaseProperties();
+
+		//Check if property exists
+		if (property != null) {
+			if (baseProperties != null) {
+				return property + ": " + baseProperties;
+			} else {
+				return property;
+			}
+		} else if (baseProperties != null) {
+			return baseProperties;
+		} else {
+			return "";
+		}
 	}
 
 	//Get the unit type's parent types
@@ -78,7 +121,7 @@ public class UnitType {
 
 	//Check if unit type is a base type - unit type is a base type if it has no parent types
 	public boolean isBaseType () {
-		return this.parentTypes == null;
+		return (this.parentTypes == null || this.parentTypes.isEmpty());
 	}
 
 	//-----------------------[Accessors end here]------------------------//
@@ -88,7 +131,7 @@ public class UnitType {
 	//----------------------[Mutators begin here]------------------------//
 
 	//Add parent types
-	public void addParent (ArrayList<UnitTypeWrapper> parentTypes) {
+	public void addParent (ArrayList<UnitTypeWrapper> parentTypes) throws UnitTypeException {
 		//Check whether a parent type list exists
 		if (this.parentTypes == null) {
 			this.parentTypes = new ArrayList<>();
@@ -122,7 +165,7 @@ public class UnitType {
 		this.simplify();
 	}
 
-	public void addParent (UnitType parentType, int exponent) {
+	public void addParent (UnitType parentType, int exponent) throws UnitTypeException {
 		//Check whether a parent type list exists
 		if (this.parentTypes == null) {
 			this.parentTypes = new ArrayList<>();
@@ -154,11 +197,12 @@ public class UnitType {
 		this.simplify();
 	}
 
-	public void addParent (UnitType parentType) {
+	public void addParent (UnitType parentType) throws UnitTypeException {
 		addParent(parentType, 1);
 	}
 
-	private void simplify () {
+	//Reduce parent types to their base types
+	private void simplify () throws UnitTypeException {
 		//Type cannot be simplified if it has not parent types
 		if (parentTypes != null) {
 
@@ -191,7 +235,8 @@ public class UnitType {
 						//Add new type if type is not already in list
 						if (!isAlreadyInList) {
 							simplifiedParentTypes.add(new UnitTypeWrapper(
-									parentTypeWrapper.getUnitType(), parentTypeWrapper.getExponent()
+									parentTypeWrapper.getUnitType(),
+									parentTypeWrapper.getExponent() * typeWrapper.getExponent()
 							));
 						}
 					}
@@ -234,4 +279,48 @@ public class UnitType {
 	}
 
 	//------------------------[Mutators end here]------------------------//
+
+
+
+	//-----------------[Comparison functions begin here]-----------------//
+
+	public boolean equals (UnitType toCompare) {
+		//Check if toCompare is null
+		if (toCompare == null) {
+			return false;
+		}
+
+		//Compare names if types are base types
+		if (this.isBaseType() && toCompare.isBaseType()) {
+			return (this.property.equals(toCompare.property));
+
+		//Compare base types to check whether types are the same
+		} else {
+			//Check number of parent types
+			if (this.parentTypes.size() != toCompare.parentTypes.size()) {
+				return false;
+			} else {
+				//Check each parent type
+				for (UnitTypeWrapper typeWrapper : this.parentTypes) {
+					boolean found = false;
+
+					for (UnitTypeWrapper compareTypeWrapper : toCompare.parentTypes) {
+						if (compareTypeWrapper.equals(typeWrapper)) {
+							found = true;
+							break;
+						}
+					}
+
+					if (!found) {
+						return false;
+					}
+				}
+
+				//All parent types are equal
+				return true;
+			}
+		}
+	}
+
+	//------------------[Comparison functions end here]------------------//
 }

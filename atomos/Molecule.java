@@ -95,7 +95,7 @@ public class Molecule extends Particle {
 
 		//Loop through each constituent particle
 		for (int i = 0; i < this.numParticles; i++) {
-			charge += particles[i].getCharge() * particleCounts[i];
+			charge += this.particles[i].getCharge() * this.particleCounts[i];
 		}
 
 		return charge;

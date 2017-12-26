@@ -50,4 +50,16 @@ public class UnitTypeWrapper {
 	}
 
 	//-----------------------[Mutators end here]-------------------------//
+
+
+
+	//-----------------[Comparison functions begin here]-----------------//
+
+	public boolean equals (UnitTypeWrapper toCompare) {
+		return	toCompare != null &&
+				(this.unitType.equals(toCompare.unitType)) &&
+				(this.exponent == toCompare.exponent);
+	}
+
+	//------------------[Comparison functions end here]------------------//
 }
