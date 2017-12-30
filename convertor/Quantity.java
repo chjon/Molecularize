@@ -33,10 +33,23 @@ public class Quantity {
 		this.exponents[0] = 1;
 	}
 
+	public Quantity (double value, Unit unit, int exponent) {
+
+		this.value        = value;
+		this.units        = new Unit[1];
+		this.units[0]     = unit;
+		this.exponents    = new int[1];
+		this.exponents[0] = exponent;
+
+		simplify();
+	}
+
 	public Quantity (double value, Unit[] units, int[] exponents) {
 		this.value     = value;
 		this.units     = units;
 		this.exponents = exponents;
+
+		simplify();
 	}
 
 	//----------------------[Constructors end here]----------------------//
@@ -181,12 +194,29 @@ public class Quantity {
 		}
 	}
 
-	//Add quantities together
-	public Quantity add (Quantity toAdd) throws IncompatibleUnitException {
+	//Add quantities
+	public Quantity add (Quantity toAdd) throws
+			IncompatibleUnitException {
+
 		//Check whether units are equal
 		if (this.unitsEquals(toAdd)) {
 			Quantity output = new Quantity(this.value, this.units, this.exponents);
 			output.value = this.value + toAdd.value;
+
+			return output;
+		} else {
+			throw new IncompatibleUnitException();
+		}
+	}
+
+	//Subtract quantities
+	public Quantity subtract (Quantity toSubtract) throws
+			IncompatibleUnitException {
+
+		//Check whether units are equal
+		if (this.unitsEquals(toSubtract)) {
+			Quantity output = new Quantity(this.value, this.units, this.exponents);
+			output.value = this.value - toSubtract.value;
 
 			return output;
 		} else {
