@@ -19,8 +19,6 @@ public class UnitException extends Exception{
 			"No name found";
 	public static final String NULL_SYMBOL_MESSAGE =
 			"No symbol found";
-	public static final String NULL_TYPE_MESSAGE =
-			"No type found";
 
 	//------------------[Constant declaration ends here]-----------------//
 
@@ -42,9 +40,6 @@ public class UnitException extends Exception{
 				break;
 			case NULL_SYMBOL:
 				message.append(NULL_SYMBOL_MESSAGE);
-				break;
-			case NULL_TYPE:
-				message.append(NULL_TYPE_MESSAGE);
 				break;
 		}
 
